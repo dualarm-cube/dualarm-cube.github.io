@@ -40,12 +40,15 @@ controls.enableDamping = true;
 controls.minDistance = 0.15;
 controls.maxDistance = 0.9;
 controls.enablePan = false;
+// OrbitControls sets touch-action: none, which traps a phone's vertical swipe on
+// the canvas. pan-y hands vertical swipes back to the page; sideways drags still orbit.
+renderer.domElement.style.touchAction = 'pan-y';
 // Plain wheel scrolls the page; ctrl/cmd + wheel (or a trackpad pinch) zooms.
 controls.enableZoom = false;
 stage.addEventListener('wheel', (e) => (controls.enableZoom = e.ctrlKey || e.metaKey), { capture: true });
 controls.update();
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0xd8d4c6, 1.6));
+scene.add(new THREE.HemisphereLight(0xffffff, 0xd9d9d3, 1.6));
 const sun = new THREE.DirectionalLight(0xffffff, 1.8);
 sun.position.set(-0.25, -0.35, 0.8);
 sun.castShadow = true;

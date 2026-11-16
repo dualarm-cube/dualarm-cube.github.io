@@ -5,14 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dual-Arm Rubik's Cube Solver</title>
 <meta name="description" content="A tabletop robot that scans a scrambled Rubik's cube, solves it with Kociemba's algorithm and turns the layers with two fixed stepper-driven grippers, planned and checked in a MuJoCo model of the rig.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://dualarm-cube.github.io/">
 <meta property="og:title" content="Dual-Arm Robotic Rubik's Cube Solver">
-<meta property="og:description" content="Camera, Kociemba, a MuJoCo twin of the rig, and two stepper-driven grippers. ECE 445, UIUC, Spring 2026.">
-<meta property="og:image" content="static/videos/teaser_4x.jpg">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23051E39'/%3E%3Cg fill='%23B39051'%3E%3Crect x='6' y='6' width='6' height='6' rx='1'/%3E%3Crect x='13' y='6' width='6' height='6' rx='1'/%3E%3Crect x='20' y='6' width='6' height='6' rx='1'/%3E%3Crect x='6' y='13' width='6' height='6' rx='1'/%3E%3Crect x='20' y='13' width='6' height='6' rx='1'/%3E%3Crect x='6' y='20' width='6' height='6' rx='1'/%3E%3Crect x='13' y='20' width='6' height='6' rx='1'/%3E%3Crect x='20' y='20' width='6' height='6' rx='1'/%3E%3C/g%3E%3Crect x='13' y='13' width='6' height='6' rx='1' fill='%23F9F6E5'/%3E%3C/svg%3E">
+<meta property="og:description" content="Two fixed grippers can reach only two of the cube's six layers, so the robot rolls the cube to reach the rest. ECE 445, UIUC, Spring 2026.">
+<meta property="og:image" content="https://dualarm-cube.github.io/static/videos/teaser_4x.jpg">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2316181d'/%3E%3Crect x='5' y='5' width='6.4' height='6.4' rx='1.5' fill='%23ffffff'/%3E%3Crect x='12.8' y='5' width='6.4' height='6.4' rx='1.5' fill='%232a6fdb'/%3E%3Crect x='20.6' y='5' width='6.4' height='6.4' rx='1.5' fill='%23e0263f'/%3E%3Crect x='5' y='12.8' width='6.4' height='6.4' rx='1.5' fill='%23ffd500'/%3E%3Crect x='12.8' y='12.8' width='6.4' height='6.4' rx='1.5' fill='%2300a651'/%3E%3Crect x='20.6' y='12.8' width='6.4' height='6.4' rx='1.5' fill='%23ff6a13'/%3E%3Crect x='5' y='20.6' width='6.4' height='6.4' rx='1.5' fill='%23ff6a13'/%3E%3Crect x='12.8' y='20.6' width='6.4' height='6.4' rx='1.5' fill='%23ffffff'/%3E%3Crect x='20.6' y='20.6' width='6.4' height='6.4' rx='1.5' fill='%23ffd500'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="static/css/page.css">
+<script>document.documentElement.classList.add('js');</script>
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -22,191 +26,123 @@
 </head>
 <body>
 
-<nav id="bar">
-  <div class="wrap">
-    <a class="mark" href="#top">Cube Solver</a>
-    <a class="sec" href="#overview">Overview</a>
-    <a class="sec" href="#system">System</a>
-    <a class="sec" href="#replay">Simulation</a>
-    <a class="sec" href="#stats">Results</a>
-    <a class="sec" href="#robot">Real robot</a>
-    <a class="sec" href="#team">Team</a>
-    <a class="sec" href="#cite">BibTeX</a>
+<a class="skip" href="#main">Skip to content</a>
+
+<nav id="bar" aria-label="Sections">
+  <div class="wrap bar-in">
+    <a class="mark" href="#top">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#16181d"/><rect x="5" y="5" width="6.4" height="6.4" rx="1.5" fill="#fff"/><rect x="12.8" y="5" width="6.4" height="6.4" rx="1.5" fill="#2a6fdb"/><rect x="20.6" y="5" width="6.4" height="6.4" rx="1.5" fill="#e0263f"/><rect x="5" y="12.8" width="6.4" height="6.4" rx="1.5" fill="#ffd500"/><rect x="12.8" y="12.8" width="6.4" height="6.4" rx="1.5" fill="#00a651"/><rect x="20.6" y="12.8" width="6.4" height="6.4" rx="1.5" fill="#ff6a13"/><rect x="5" y="20.6" width="6.4" height="6.4" rx="1.5" fill="#ff6a13"/><rect x="12.8" y="20.6" width="6.4" height="6.4" rx="1.5" fill="#fff"/><rect x="20.6" y="20.6" width="6.4" height="6.4" rx="1.5" fill="#ffd500"/></svg>
+      <span>Cube Solver</span>
+    </a>
+    <div class="links">
+      <a href="#overview">Overview</a>
+      <a href="#replay">Simulation</a>
+      <a href="#stats">Results</a>
+      <a href="#robot">Real robot</a>
+      <a href="#system">How it works</a>
+      <a href="#team">Team</a>
+      <a href="#cite">BibTeX</a>
+    </div>
+    <a class="btn btn-dark btn-sm" href="https://github.com/dualarm-cube/cube-solver">Code</a>
   </div>
 </nav>
 
+<main id="main">
+
 <header class="hero" id="top">
-  <div class="wrap">
-    <h1>Dual-Arm Robotic Rubik's Cube Solver</h1>
-    <p class="sub">A camera, Kociemba's two-phase solver, a MuJoCo model of the rig, and two stepper-driven grippers that can only reach two of the cube's six faces.</p>
-    <div class="authors">
-      <a href="https://qixuanhuang.com">Qixuan Huang</a>
-      <span>Yiming Xu</span>
-      <span>Rong Wang</span>
-      <span>Zhuoyang Shen</span>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="name">Dual-Arm Robotic Rubik's Cube Solver</p>
+      <h1><span>Two grippers.</span> <span>Six faces.</span></h1>
+      <p class="lede">A tabletop robot scans a scrambled Rubik's cube, solves it, and turns the layers itself. <strong>Its two grippers can reach only two of the cube's six layers</strong>, so it rolls the whole cube to bring each next layer into reach.</p>
+      <div class="cta">
+        <a class="btn btn-dark" href="#replay">Explore the simulation</a>
+        <a class="btn btn-soft" href="#robot"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 2.8v10.4l8.5-5.2z"/></svg>Watch the full solve</a>
+        <a class="btn btn-soft" href="https://github.com/dualarm-cube/cube-solver"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Code</a>
+      </div>
+      <div class="byline">
+        <p class="authors"><a href="https://qixuanhuang.com">Qixuan Huang</a><span>Yiming Xu</span><span>Rong Wang</span><span>Zhuoyang Shen</span></p>
+        <p class="affil">University of Illinois Urbana-Champaign · ECE 445 Senior Design, Spring 2026</p>
+      </div>
     </div>
-    <div class="affil">University of Illinois Urbana-Champaign · ECE 445 Senior Design, Spring 2026</div>
-    <div class="buttons">
-      <a class="btn" href="#robot"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>Robot video</a>
-      <a class="btn" href="#replay"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M8 1.8 13.5 5v6L8 14.2 2.5 11V5z"/><path d="M2.5 5 8 8.2 13.5 5M8 8.2v6"/></svg>Interactive sim</a>
-      <a class="btn" href="https://github.com/dualarm-cube/cube-solver"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Code</a>
-      <a class="btn ghost" href="#stats"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="2" y="8" width="3" height="6" rx="1"/><rect x="6.5" y="4" width="3" height="10" rx="1"/><rect x="11" y="6" width="3" height="8" rx="1"/></svg>Results</a>
-      <a class="btn ghost" href="#cite"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M3 4h4v4H5c0 1.5.7 2.3 2 2.6V12C4.4 11.7 3 10 3 7.5zm6 0h4v4h-2c0 1.5.7 2.3 2 2.6V12c-2.6-.3-4-2-4-4.5z"/></svg>BibTeX</a>
+    <figure class="hero-media">
+      <div class="frame">
+        <video id="hero-video" src="static/videos/teaser_4x.mp4" poster="static/videos/teaser_4x.jpg" autoplay muted loop playsinline preload="metadata" aria-label="The robot scanning and solving a scrambled cube, sped up four times"></video>
+        <button class="vid-toggle" id="hero-toggle" type="button" aria-label="Pause video"></button>
+      </div>
+      <figcaption>The real robot scanning and solving a fully scrambled cube, sped up 4×.</figcaption>
+    </figure>
+  </div>
+
+  <div class="wrap">
+    <div class="numbers" role="list" aria-label="Highlights">
+      <div class="num" role="listitem"><p class="n"><span data-stat="solved">1000</span><small>/<span data-stat="n">1000</span></small></p><p class="l">random scrambles solved by the controller in simulation</p></div>
+      <div class="num" role="listitem"><p class="n" data-stat="htm">21</p><p class="l">face turns in the median Kociemba solution</p></div>
+      <div class="num" role="listitem"><p class="n" data-stat="rolls">23</p><p class="l">whole-cube rolls the arms add to the median solve</p></div>
+      <div class="num" role="listitem"><p class="n">~2<small> min</small></p><p class="l">for the real robot's full solve, scan included</p></div>
     </div>
   </div>
 </header>
 
-<div class="wrap">
-  <div class="teaser" id="overview">
-    <div class="vid">
-      <span class="tag">Real robot · 4×</span>
-      <video src="static/videos/teaser_4x.mp4" poster="static/videos/teaser_4x.jpg" autoplay muted loop playsinline preload="metadata" aria-label="The robot scanning and solving a scrambled cube, sped up four times"></video>
-    </div>
-    <div>
-      <p class="lead">The robot holds a scrambled cube corner-down between two grippers, rolls it through five poses so an overhead camera can see every face, solves the state with Kociemba's two-phase algorithm, and then turns the layers itself. Each gripper can turn only the layer behind the edge it clamps, so most moves start by rolling the whole cube to bring the right layer into reach. A MuJoCo model of the rig runs the same controller and decides every roll, clamp and turn before the motors move.</p>
-      <div class="tiles">
-        <div class="tile"><div class="n" data-stat="solved">1000<small>/1000</small></div><div class="l">random scrambles solved by the controller in simulation</div></div>
-        <div class="tile"><div class="n" data-stat="htm">21</div><div class="l">face turns in the median Kociemba solution</div></div>
-        <div class="tile"><div class="n" data-stat="rolls">23</div><div class="l">whole-cube rolls the arms add to the median solve</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<section id="system">
+<section id="overview" class="band" aria-labelledby="overview-h">
   <div class="wrap">
-    <h2>System</h2>
-    <p class="kicker">Planning runs on a host computer; the rig only executes clamp, release and rotate commands.</p>
-
-    <div class="pipeline" role="img" aria-label="Pipeline: camera, sticker detection, colour classification, Kociemba, MuJoCo controller on the host computer, then USB serial to an Arduino Nano Every, stepper drivers and four stepper motors">
-      <div class="zone">
-        <span class="zl">Host computer</span>
-        <div class="chain">
-          <div class="node"><b>USB camera, 1080p</b><span>exposure and white balance locked; 5 cube poses, 2 faces per pose</span></div>
-          <div class="flow">↓</div>
-          <div class="node"><b>YOLOv8-nano + KNN</b><span>find every sticker regardless of colour, then classify colour; sort into a 6×3×3 state</span></div>
-          <div class="flow">↓</div>
-          <div class="node"><b>Kociemba two-phase solver</b><span>Singmaster move string, about 21 face turns</span></div>
-          <div class="flow">↓</div>
-          <div class="node key"><b>Dual-arm controller in MuJoCo</b><span>tracks cube orientation, plans rolls, runs a per-move state machine, emits primitive packets</span></div>
-        </div>
-      </div>
-      <div class="wire">
-        <span>USB serial</span>
-        <div class="line"></div>
-        <code>one JSON line / packet</code>
-        <code>waits for DONE</code>
-      </div>
-      <div class="zone">
-        <span class="zl">Rig</span>
-        <div class="chain">
-          <div class="node key"><b>Arduino Nano Every</b><span>parses each packet, steps all four axes together, replies DONE or ERR</span></div>
-          <div class="flow">↓</div>
-          <div class="node"><b>4 × HPD322 stepper drivers</b><span>step / direction inputs, full-step mode</span></div>
-          <div class="flow">↓</div>
-          <div class="node"><b>4 × NEMA-17 steppers</b><span>per arm: a wrist motor that turns the gripper, a clamp motor that opens and closes it</span></div>
-          <div class="flow">↓</div>
-          <div class="node"><b>3D-printed dual-arm frame</b><span>inverted-V cradle; the cube sits corner-down between the grippers</span></div>
-        </div>
-      </div>
+    <div class="head reveal">
+      <p class="eyebrow"><i class="sticker g"></i>The constraint</p>
+      <h2 id="overview-h">Only two of the six layers are in reach at a time.</h2>
+      <p class="lead">The robot holds the cube corner-down between two grippers fixed to the frame. Each gripper can turn only the layer behind the edge it clamps, so most moves start by rolling the whole cube to bring the right layer into reach.</p>
     </div>
 
-    <h3>The mechanism</h3>
-    <div class="grid2">
-      <figure>
-        <div class="media-frame mech"><img src="static/images/assembled.jpg" alt="The assembled robot: white printed frame, two black stepper motors, a cube held corner-down between two grippers, and a camera on a mast above" loading="lazy"></div>
+    <div class="constraint">
+      <figure class="photo reveal">
+        <div class="media"><img src="static/images/assembled.jpg" width="1050" height="1400" alt="The assembled robot: white printed frame, two black stepper motors, a cube held corner-down between two grippers, and a camera on a mast above" loading="lazy"></div>
         <figcaption><b>The assembled rig.</b> The overhead camera's mount is part of the frame, so its view of the cube never shifts between scans.</figcaption>
       </figure>
-      <figure>
-        <div class="media-frame" style="background:#fff">
-          <svg viewBox="0 0 400 300" role="img" aria-label="Front view: the cube as a diamond, two arms in an inverted V, each gripper clamping the middle piece of one lower edge">
-            <rect x="40" y="276" width="320" height="10" rx="4" fill="#5f6b7a"/>
-            <g fill="#f4f2ea" stroke="#051E39" stroke-width="2" stroke-linejoin="round">
-              <path d="M200 30 290 120 200 210 110 120z"/>
-            </g>
-            <g stroke="#9aa3ae" stroke-width="1.5">
-              <path d="M140 150 230 60M170 180 260 90M140 90 230 180M170 60 260 150"/>
-            </g>
-            <path d="M140 150 170 180 200 150 170 120z" fill="#B39051" stroke="#051E39" stroke-width="2" stroke-linejoin="round"/>
-            <path d="M200 150 230 180 260 150 230 120z" fill="#B39051" stroke="#051E39" stroke-width="2" stroke-linejoin="round"/>
-            <path d="M200 30 290 120 200 210 110 120z" fill="none" stroke="#051E39" stroke-width="2.5" stroke-linejoin="round"/>
-            <g stroke-linecap="round">
-              <path d="M78 262 148 176" stroke="#051E39" stroke-width="22"/>
-              <path d="M78 262 148 176" stroke="#5f6b7a" stroke-width="17"/>
-              <path d="M322 262 252 176" stroke="#051E39" stroke-width="22"/>
-              <path d="M322 262 252 176" stroke="#5f6b7a" stroke-width="17"/>
-            </g>
-            <g fill="#DEBD88" stroke="#051E39" stroke-width="2">
-              <rect x="-15" y="-5" width="30" height="10" rx="2" transform="translate(148 168) rotate(-45)"/>
-              <rect x="-15" y="-5" width="30" height="10" rx="2" transform="translate(252 168) rotate(45)"/>
-            </g>
-            <g fill="#f4f2ea" stroke="#051E39" stroke-width="2">
-              <circle cx="78" cy="262" r="16"/><circle cx="322" cy="262" r="16"/>
-            </g>
-            <g fill="#051E39"><circle cx="78" cy="262" r="4"/><circle cx="322" cy="262" r="4"/></g>
-            <g font-family="Inter, sans-serif" font-size="13" fill="#4a5462">
-              <text x="98" y="206" text-anchor="end">left arm</text>
-              <text x="302" y="206">right arm</text>
-            </g>
-          </svg>
-        </div>
-        <figcaption><b>How a gripper reaches a layer.</b> Each gripper clamps the middle piece of one lower edge (gold). Turning that gripper while the other also holds turns the 9-piece layer behind the edge; turning it while the other is open rolls the whole cube a quarter turn.</figcaption>
-      </figure>
+      <div class="mech reveal">
+        <svg class="diagram" viewBox="0 0 400 300" role="img" aria-label="Front view: the cube as a diamond, two arms in an inverted V, each gripper clamping the middle piece of one lower edge">
+          <rect x="40" y="279" width="320" height="5" rx="2.5" fill="#d5d5d0"/>
+          <path d="M200 30 290 120 200 210 110 120z" fill="#fff"/>
+          <g stroke="#cfd1d5" stroke-width="1.5">
+            <path d="M140 150 230 60M170 180 260 90M140 90 230 180M170 60 260 150"/>
+          </g>
+          <path d="M140 150 170 180 200 150 170 120z" fill="#0046ad"/>
+          <path d="M200 150 230 180 260 150 230 120z" fill="#0046ad"/>
+          <path d="M200 30 290 120 200 210 110 120z" fill="none" stroke="#16181d" stroke-width="2" stroke-linejoin="round"/>
+          <g stroke="#a3a7ae" stroke-width="15" stroke-linecap="round">
+            <path d="M78 262 148 176"/><path d="M322 262 252 176"/>
+          </g>
+          <g fill="#16181d">
+            <rect x="-15" y="-5" width="30" height="10" rx="2.5" transform="translate(148 168) rotate(-45)"/>
+            <rect x="-15" y="-5" width="30" height="10" rx="2.5" transform="translate(252 168) rotate(45)"/>
+          </g>
+          <g fill="#fff" stroke="#16181d" stroke-width="2"><circle cx="78" cy="262" r="15"/><circle cx="322" cy="262" r="15"/></g>
+          <g fill="#16181d"><circle cx="78" cy="262" r="3.5"/><circle cx="322" cy="262" r="3.5"/></g>
+          <g font-family="Inter, system-ui, sans-serif" font-size="13" fill="#6b7079">
+            <text x="98" y="208" text-anchor="end">left arm</text>
+            <text x="302" y="208">right arm</text>
+          </g>
+        </svg>
+        <p class="cap"><b>How a gripper reaches a layer.</b> Each gripper clamps the middle piece of one lower edge, shown in blue. What happens next depends on the other gripper.</p>
+        <dl class="modes">
+          <div><dt>Layer turn</dt><dd>Both grippers hold and one wrist turns 90°. The nine-piece layer behind that edge turns.</dd></div>
+          <div><dt>Roll</dt><dd>One gripper opens and the other turns. The whole cube rolls a quarter turn.</dd></div>
+        </dl>
+      </div>
     </div>
-
-    <p>With the grippers fixed to the frame, only two of the six layers are within reach at any time. The controller keeps a 3×3 integer matrix from the machine frame to the cube's own frame and updates it after every roll. For each requested move it searches breadth-first over sequences of single-gripper rolls for the shortest one that brings the target layer into a gripper's slot, picking whichever arm needs fewer rolls. Half turns run as two quarter turns, because the wrist only travels ±90°.</p>
-
-    <ol class="fsm" aria-label="Per-move state machine">
-      <li><b>Parse</b>Read the next Singmaster token, e.g. <code>R'</code>.</li>
-      <li><b>Map</b>Convert it to an axis, a layer and a direction in the cube's frame.</li>
-      <li><b>Choose an arm</b>The one whose slot needs fewer rolls to reach that layer.</li>
-      <li><b>Roll if needed</b>One gripper holds and turns; the other opens, then re-clamps.</li>
-      <li><b>Turn the layer</b>Both grippers hold; the active wrist turns 90°.</li>
-      <li><b>Reset</b>Release the active gripper, return its wrist to neutral, clamp both again.</li>
-    </ol>
-
-    <h3>Primitive packets</h3>
-    <p>The interface between the planner and the rig is deliberately small: an ordered list of four kinds of command. The simulation never streams poses or trajectories; whatever the controller decides is written down as these packets, and the same list drives the real motors.</p>
-    <table class="ops">
-      <thead><tr><th>Op</th><th>Fields</th><th>What the rig does</th></tr></thead>
-      <tbody>
-        <tr><td>CLAMP</td><td>side</td><td>Close one gripper.</td></tr>
-        <tr><td>RELEASE</td><td>side</td><td>Open one gripper. Refused unless the other gripper is closed, so the cube is never dropped.</td></tr>
-        <tr><td>DUAL_HOLD</td><td>none</td><td>Both grippers closed; the safe resting state between moves.</td></tr>
-        <tr><td>ROTATE</td><td>side, angle</td><td>Drive one wrist to −90°, 0° or +90°. With the other gripper open this rolls the cube; with both closed it turns a layer.</td></tr>
-      </tbody>
-    </table>
-    <p>On the wire, the host sends each packet as one line of JSON carrying both grippers' target state, and blocks until the Arduino answers <code>DONE</code>:</p>
-<pre class="wirefmt">{"L":{"state":1,"angle":1.5708,"action":"ROTATE"},
- "R":{"state":0,"angle":0.0,"action":"HOLD"},
- "t_ms":400}                       <span class="c">// → "DONE"</span></pre>
-    <p class="muted">Two additions came from running the real rig. Stepper clamps slowly lose grip under load, so after each return to a dual hold the bridge sends a short <code>RECLAMP</code> that presses both jaws inward again. And after a release leaves the cube in one gripper, it waits 300 ms while the holding side keeps creeping inward before the next rotation starts.</p>
-
-    <h3>Reading the cube</h3>
-    <div class="grid2">
-      <figure>
-        <div class="media-frame"><img src="static/images/detection.jpg" alt="Camera frame of the cube with a coloured bounding box around every visible sticker" loading="lazy"></div>
-        <figcaption><b>One scan frame.</b> YOLOv8-nano boxes every visible sticker as a single class; a KNN classifier then labels each box's colour. Partly hidden stickers are still found.</figcaption>
-      </figure>
-      <figure>
-        <div class="media-frame" style="background:#fff"><img src="static/images/yolo_training.jpg" alt="Training curves for the sticker detector: box, class and DFL losses fall; precision, recall and mAP50 approach 1" loading="lazy"></div>
-        <figcaption><b>Sticker-detector training</b> (50 epochs, 640×640, AdamW). Our first detector predicted the six colours directly and broke whenever the lighting changed; separating "where is a sticker" from "what colour is it" fixed that.</figcaption>
-      </figure>
-    </div>
-    <p>The camera's auto-exposure and auto-white-balance are switched off at start-up, so colours don't shift when the white arms move through the frame. The scan rolls the cube through five poses, each showing two faces; the ten face views are sorted by position into rows and columns and fused into the 6×3×3 state the solver needs.</p>
   </div>
 </section>
 
-<section id="replay">
+<section id="replay" aria-labelledby="replay-h">
   <div class="wrap">
-    <h2>Simulation</h2>
-    <p class="kicker">The model is built from the team's CAD assembly. The arms are reduced to the same four motors the real rig has: a wrist and a clamp on each side.</p>
-    <p>This is a recording of the MuJoCo model running the robot's controller, played back in your browser with the real CAD meshes. The packet list on the right is exactly what would be sent to the Arduino at that moment. Drag to orbit; hold ctrl or ⌘ and scroll to zoom.</p>
+    <div class="head reveal">
+      <p class="eyebrow"><i class="sticker b"></i>Interactive replay</p>
+      <h2 id="replay-h">Every roll, clamp and turn is planned in simulation first.</h2>
+      <p class="lead">This is a recording of the MuJoCo model running the robot's controller, played back in your browser with the real CAD meshes. The packet list beside it is exactly what would be sent to the Arduino at that moment.</p>
+    </div>
 
-    <div class="viewer" id="viewer">
+    <div class="viewer reveal" id="viewer">
       <div class="viewer-top">
         <div class="seg" id="presets" role="group" aria-label="Recording"></div>
-        <div class="seg" id="speeds" role="group" aria-label="Playback speed" style="margin-left:auto"></div>
+        <div class="seg" id="speeds" role="group" aria-label="Playback speed"></div>
       </div>
       <div class="viewer-body">
         <div class="stage" id="stage">
@@ -215,107 +151,208 @@
           <span class="hint">drag to orbit · ctrl/⌘ + scroll to zoom</span>
         </div>
         <div class="side">
-          <h4><span>Packets to the Arduino</span><span id="pk-count">0</span></h4>
+          <h3><span>Packets to the Arduino</span><span id="pk-count">0</span></h3>
           <ol class="log" id="log" aria-live="off"></ol>
         </div>
       </div>
       <div class="moves" id="moves" aria-label="Solution"></div>
       <div class="controls">
-        <button class="play" id="play" aria-label="Pause"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2.5" width="3.5" height="11" rx="1"/><rect x="9.5" y="2.5" width="3.5" height="11" rx="1"/></svg></button>
+        <button class="play" id="play" type="button" aria-label="Pause"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2.5" width="3.5" height="11" rx="1"/><rect x="9.5" y="2.5" width="3.5" height="11" rx="1"/></svg></button>
         <div class="scrub">
           <div class="track"><div class="scan" id="scan-band"></div><div class="fill" id="fill"></div></div>
           <div class="knob" id="knob"></div>
           <input type="range" id="seek" min="0" max="1000" value="0" aria-label="Playback position">
         </div>
-        <span class="time" id="time">0 / 0</span>
+        <span class="time" id="time">0:00 / 0:00</span>
       </div>
-      <div class="legend-row"><span><i style="background:#d9cfae"></i>scan: five poses, two faces each</span><span><i style="background:#051E39"></i>played so far</span></div>
+      <div class="legend-row"><span><i class="lg-scan"></i>scan: five poses, two faces each</span><span><i class="lg-done"></i>played so far</span></div>
     </div>
-    <p class="muted" style="font-size:14px">Playback runs at 60 controller steps per second at 1×; it shows the order and geometry of motions, not the real rig's timing. Each "Scan and solve" recording starts from a random 20-move scramble, runs the same five-pose scan as the robot, reads the state, and solves it.</p>
+    <p class="note">The model is built from the team's CAD assembly, with the arms reduced to the same four motors the real rig has: a wrist and a clamp on each side. Playback runs at 60 controller steps per second at 1×; it shows the order and geometry of motions, not the real rig's timing. Each "Scan and solve" recording starts from a random 20-move scramble, runs the same five-pose scan as the robot, reads the state, and solves it.</p>
 
-    <h3>Rendered in MuJoCo</h3>
-    <div class="grid2">
-      <figure>
-        <div class="media-frame"><video src="static/videos/sim_warmup.mp4" poster="static/videos/sim_warmup.jpg" controls muted loop playsinline preload="none"></video></div>
-        <figcaption><b>Warm-up sequence <code>R U R' U'</code></b>, the first thing we ran end to end. Four face turns become 68 packets: each turn needs one or two rolls first.</figcaption>
-      </figure>
-      <figure>
-        <div class="media-frame"><video src="static/videos/sim_solve1.mp4" poster="static/videos/sim_solve1.jpg" controls muted loop playsinline preload="none"></video></div>
-        <figcaption><b>Scan and solve #1</b>: the five-pose scan, then a 21-move Kociemba solution, rendered offscreen from the same run as the interactive recording above.</figcaption>
-      </figure>
+    <div class="renders">
+      <h3 class="reveal">Rendered in MuJoCo</h3>
+      <div class="pair">
+        <figure class="reveal">
+          <div class="media"><video src="static/videos/sim_warmup.mp4" poster="static/videos/sim_warmup.jpg" aria-label="MuJoCo render of the warm-up sequence R U R prime U prime" controls muted loop playsinline preload="none"></video></div>
+          <figcaption><b>Warm-up sequence <code>R U R' U'</code></b>, the first thing we ran end to end. Four face turns become 68 packets: each turn needs one or two rolls first.</figcaption>
+        </figure>
+        <figure class="reveal">
+          <div class="media"><video src="static/videos/sim_solve1.mp4" poster="static/videos/sim_solve1.jpg" aria-label="MuJoCo render of scan and solve number 1: the five-pose scan, then a 21-move solution" controls muted loop playsinline preload="none"></video></div>
+          <figcaption><b>Scan and solve #1</b>: the five-pose scan, then a 21-move Kociemba solution, rendered offscreen from the same run as the interactive recording above.</figcaption>
+        </figure>
+      </div>
     </div>
   </div>
 </section>
 
-<section id="stats">
+<section id="stats" class="band" aria-labelledby="stats-h">
   <div class="wrap">
-    <h2>Results in simulation</h2>
-    <p class="kicker" id="stats-kicker">1000 random 20-move scrambles, each scanned, solved and executed by the controller.</p>
-
-    <div class="tiles four" id="stat-tiles"></div>
+    <div class="head reveal">
+      <p class="eyebrow"><i class="sticker r"></i>Results in simulation</p>
+      <h2 id="stats-h"><span class="line"><span data-stat="n">1000</span> random scrambles.</span> <span class="line"><span data-stat="solved">1000</span> solved.</span></h2>
+      <p class="lead">Each run starts from a random <span data-stat="scrambleLength">20</span>-move scramble, which the controller scans, solves and executes. The cube ended solved in every run, so the controller's orientation tracking and roll planning hold up on arbitrary states.</p>
+    </div>
 
     <div class="charts">
-      <div class="chart" id="c-htm"><h5>Solution length</h5><p class="note">Face turns in the Kociemba solution</p></div>
-      <div class="chart" id="c-qtm"><h5>Quarter turns executed</h5><p class="note">Half turns run as two quarter turns on the rig</p></div>
-      <div class="chart" id="c-rolls"><h5>Whole-cube rolls per solve</h5><p class="note">Extra motions the fixed grippers need</p></div>
-      <div class="chart" id="c-packets"><h5>Serial packets per solve</h5><p class="note">Primitive packets plus the bridge's re-clamps and holds</p></div>
+      <div class="chart reveal" id="c-htm"><h3>Solution length</h3><p class="note">Face turns in the Kociemba solution</p></div>
+      <div class="chart reveal" id="c-qtm"><h3>Quarter turns executed</h3><p class="note">Half turns run as two quarter turns on the rig</p></div>
+      <div class="chart reveal" id="c-rolls"><h3>Whole-cube rolls per solve</h3><p class="note">Extra motions the fixed grippers need</p></div>
+      <div class="chart reveal" id="c-packets"><h3>Serial packets per solve</h3><p class="note">Primitive packets plus the bridge's re-clamps and holds</p></div>
     </div>
     <details class="table"><summary>Show the numbers as a table</summary><div id="stats-table"></div></details>
 
-    <div class="callout">The cube ended solved in all 1000 runs, so the controller's orientation tracking and roll planning hold up on arbitrary states. Rolls are the cost of fixed grippers: a median solve adds 23 of them to 30 quarter turns, and each roll is a release, a one-handed rotation and a re-clamp. That, not the 14 ms the solver takes, is where the real rig's two minutes per solve go.</div>
+    <p class="statement reveal">Rolls are the cost of fixed grippers. A median solve adds <span data-stat="rolls">23</span> of them to <span data-stat="qtm">30</span> quarter turns, and each roll is a release, a one-handed rotation and a re-clamp. <strong>That, not the <span data-stat="solveMs">14</span> ms the solver takes, is where the real rig's two minutes per solve go.</strong></p>
   </div>
 </section>
 
-<section id="robot">
-  <div class="wrap">
-    <h2>Real robot</h2>
-    <p class="kicker">Recorded on the integrated rig. The controller and packet stream are the same ones shown above.</p>
-    <div class="teaser robot">
-      <figure class="portrait" style="margin:0">
-        <div class="vid"><span class="tag">4×</span><video src="static/videos/teaser_4x.mp4" poster="static/videos/teaser_4x.jpg" controls muted playsinline preload="none" aria-label="The robot scanning and solving a fully scrambled cube, sped up four times"></video></div>
-        <figcaption><b>Full solve.</b> A fully scrambled cube: five-pose scan, Kociemba, then every roll and layer turn. About two minutes in real time.</figcaption>
-      </figure>
-      <div>
-        <h3 style="margin-top:0">What we'd fix next</h3>
-        <p><b>Closed-loop motors.</b> The steppers run open-loop. A lost step is invisible to the software, and from then on its idea of the cube no longer matches the real one; encoders, or a quick re-scan after each move, would catch it.</p>
-    <p><b>Contact.</b> The simulation assumes each jaw lands on the centre of an edge piece. On the rig, a few millimetres of misalignment can turn the wrong layer, and the printed jaw faces rely on clamping force; grippier pads would tolerate more error.</p>
-    <p><b>Speed.</b> Every packet waits for the previous one to finish. Starting the next clamp while a rotation settles, and choosing rolls that also shorten later moves, would cut most of the idle time.</p>
-        <p><b>Lighting.</b> The colour classifier was trained under one lighting setup and hasn't been tested under others.</p>
+<section id="robot" class="dark" aria-labelledby="robot-h">
+  <div class="wrap robot">
+    <figure class="robot-video reveal">
+      <div class="frame"><video src="static/videos/teaser_4x.mp4" poster="static/videos/teaser_4x.jpg" controls muted playsinline preload="none" aria-label="The robot scanning and solving a fully scrambled cube, sped up four times"></video></div>
+      <figcaption>Full solve, sped up 4×. About two minutes in real time.</figcaption>
+    </figure>
+    <div class="robot-copy">
+      <div class="reveal">
+        <p class="eyebrow"><i class="sticker o"></i>Real robot</p>
+        <h2 id="robot-h">A fully scrambled cube, solved on the real rig.</h2>
+        <p class="lead">Recorded on the integrated rig. The controller and packet stream are the same ones shown above: the five-pose scan, Kociemba, then every roll and layer turn.</p>
       </div>
+      <h3 class="reveal">What we'd fix next</h3>
+      <dl class="fixes reveal">
+        <div><dt>Closed-loop motors</dt><dd>The steppers run open-loop. A lost step is invisible to the software, and from then on its idea of the cube no longer matches the real one; encoders, or a quick re-scan after each move, would catch it.</dd></div>
+        <div><dt>Contact</dt><dd>The simulation assumes each jaw lands on the centre of an edge piece. On the rig, a few millimetres of misalignment can turn the wrong layer, and the printed jaw faces rely on clamping force; grippier pads would tolerate more error.</dd></div>
+        <div><dt>Speed</dt><dd>Every packet waits for the previous one to finish. Starting the next clamp while a rotation settles, and choosing rolls that also shorten later moves, would cut most of the idle time.</dd></div>
+        <div><dt>Lighting</dt><dd>The colour classifier was trained under one lighting setup and hasn't been tested under others.</dd></div>
+      </dl>
     </div>
   </div>
 </section>
 
-<section id="pcb">
+<section id="system" aria-labelledby="system-h">
   <div class="wrap">
-    <div class="grid2" style="align-items:center">
-      <div>
-        <h2 style="font-size:28px">Side work: a servo-control board</h2>
+    <div class="head reveal">
+      <p class="eyebrow"><i class="sticker y"></i>How it works</p>
+      <h2 id="system-h">From camera to motors, one packet at a time.</h2>
+      <p class="lead">Planning runs on a host computer. The rig only executes clamp, release and rotate commands.</p>
+    </div>
+
+    <div class="pipeline reveal" role="group" aria-label="Pipeline: camera, sticker detection, colour classification, Kociemba and the MuJoCo controller on the host computer, then USB serial to an Arduino Nano Every, stepper drivers and four stepper motors">
+      <div class="lane">
+        <p class="lane-label">Host computer</p>
+        <ol class="steps">
+          <li><span class="i" aria-hidden="true">01</span><b>USB camera, 1080p</b><span class="d">Exposure and white balance locked; 5 cube poses, 2 faces per pose</span></li>
+          <li><span class="i" aria-hidden="true">02</span><b>YOLOv8-nano + KNN</b><span class="d">Find every sticker regardless of colour, then classify colour; sort into a 6×3×3 state</span></li>
+          <li><span class="i" aria-hidden="true">03</span><b>Kociemba two-phase solver</b><span class="d">Singmaster move string, about 21 face turns</span></li>
+          <li class="key"><span class="i" aria-hidden="true">04</span><b>Dual-arm controller in MuJoCo</b><span class="d">Tracks cube orientation, plans rolls, runs a per-move state machine, emits primitive packets</span></li>
+        </ol>
+      </div>
+      <div class="wire">
+        <span class="wire-line"></span>
+        <p><b>USB serial</b><span>one JSON line per packet, then wait for <code>DONE</code></span></p>
+        <span class="wire-line arrow"></span>
+      </div>
+      <div class="lane">
+        <p class="lane-label">Rig</p>
+        <ol class="steps" start="5">
+          <li class="key"><span class="i" aria-hidden="true">05</span><b>Arduino Nano Every</b><span class="d">Parses each packet, steps all four axes together, replies DONE or ERR</span></li>
+          <li><span class="i" aria-hidden="true">06</span><b>4 × HPD322 stepper drivers</b><span class="d">Step / direction inputs, full-step mode</span></li>
+          <li><span class="i" aria-hidden="true">07</span><b>4 × NEMA-17 steppers</b><span class="d">Per arm: a wrist motor that turns the gripper, a clamp motor that opens and closes it</span></li>
+          <li><span class="i" aria-hidden="true">08</span><b>3D-printed dual-arm frame</b><span class="d">Inverted-V cradle; the cube sits corner-down between the grippers</span></li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="block wide">
+      <div class="block-head reveal">
+        <h3>Reading the cube</h3>
+        <p>The camera's auto-exposure and auto-white-balance are switched off at start-up, so colours don't shift when the white arms move through the frame. The scan rolls the cube through five poses, each showing two faces; the ten face views are sorted by position into rows and columns and fused into the 6×3×3 state the solver needs.</p>
+      </div>
+      <div class="pair">
+        <figure class="reveal">
+          <div class="media"><img src="static/images/detection.jpg" width="1600" height="900" alt="Camera frame of the cube with a coloured bounding box around every visible sticker" loading="lazy"></div>
+          <figcaption><b>One scan frame.</b> YOLOv8-nano boxes every visible sticker as a single class; a KNN classifier then labels each box's colour. Partly hidden stickers are still found.</figcaption>
+        </figure>
+        <figure class="reveal">
+          <div class="media plain"><img src="static/images/yolo_training.jpg" width="1800" height="900" alt="Training curves for the sticker detector: box, class and DFL losses fall; precision, recall and mAP50 approach 1" loading="lazy"></div>
+          <figcaption><b>Sticker-detector training</b> (50 epochs, 640×640, AdamW). Our first detector predicted the six colours directly and broke whenever the lighting changed; separating "where is a sticker" from "what colour is it" fixed that.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="block-head reveal">
+        <h3>Rolling to reach a layer</h3>
+        <p>With the grippers fixed to the frame, only two of the six layers are within reach at any time. The controller keeps a 3×3 integer matrix from the machine frame to the cube's own frame and updates it after every roll. For each requested move it searches breadth-first over sequences of single-gripper rolls for the shortest one that brings the target layer into a gripper's slot, picking whichever arm needs fewer rolls. Half turns run as two quarter turns, because the wrist only travels ±90°.</p>
+      </div>
+      <div class="block-body reveal">
+        <p class="sub">Each move runs through the same six steps.</p>
+        <ol class="fsm" aria-label="Per-move state machine">
+          <li><b>Parse</b>Read the next Singmaster token, e.g. <code>R'</code>.</li>
+          <li><b>Map</b>Convert it to an axis, a layer and a direction in the cube's frame.</li>
+          <li><b>Choose an arm</b>The one whose slot needs fewer rolls to reach that layer.</li>
+          <li><b>Roll if needed</b>One gripper holds and turns; the other opens, then re-clamps.</li>
+          <li><b>Turn the layer</b>Both grippers hold; the active wrist turns 90°.</li>
+          <li><b>Reset</b>Release the active gripper, return its wrist to neutral, clamp both again.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="block-head reveal">
+        <h3>Primitive packets</h3>
+        <p>The interface between the planner and the rig is deliberately small: an ordered list of four kinds of command. The simulation never streams poses or trajectories; whatever the controller decides is written down as these packets, and the same list drives the real motors.</p>
+      </div>
+      <div class="block-body reveal">
+        <div class="table-wrap">
+          <table class="ops">
+            <thead><tr><th>Op</th><th>Fields</th><th>What the rig does</th></tr></thead>
+            <tbody>
+              <tr><td class="op-CLAMP">CLAMP</td><td>side</td><td>Close one gripper.</td></tr>
+              <tr><td class="op-RELEASE">RELEASE</td><td>side</td><td>Open one gripper. Refused unless the other gripper is closed, so the cube is never dropped.</td></tr>
+              <tr><td class="op-DUAL_HOLD">DUAL_HOLD</td><td>none</td><td>Both grippers closed; the safe resting state between moves.</td></tr>
+              <tr><td class="op-ROTATE">ROTATE</td><td>side, angle</td><td>Drive one wrist to −90°, 0° or +90°. With the other gripper open this rolls the cube; with both closed it turns a layer.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>On the wire, the host sends each packet as one line of JSON carrying both grippers' target state, and blocks until the Arduino answers <code>DONE</code>:</p>
+<pre class="wirefmt">{"L":{"state":1,"angle":1.5708,"action":"ROTATE"},
+ "R":{"state":0,"angle":0.0,"action":"HOLD"},
+ "t_ms":400}                       <span class="c">// → "DONE"</span></pre>
+        <p class="muted">Two additions came from running the real rig. Stepper clamps slowly lose grip under load, so after each return to a dual hold the bridge sends a short <code>RECLAMP</code> that presses both jaws inward again. And after a release leaves the cube in one gripper, it waits 300 ms while the holding side keeps creeping inward before the next rotation starts.</p>
+      </div>
+    </div>
+
+    <div class="block side-work">
+      <div class="block-head reveal">
+        <h3>Side work: a servo-control board</h3>
         <p>Zhuoyang also designed a two-layer servo-control board: a PCA9685 16-channel PWM driver on I²C, an XL4015 buck stage for a 5 V servo rail, an AMS1117 3.3 V logic rail, a fused and diode-protected input, and separate servo and logic grounds. Both rails and all 16 PWM channels were verified on the bench.</p>
         <p class="muted">The final rig switched to stepper motors driven from an Arduino Nano Every, so this board is not part of the system shown above.</p>
       </div>
-      <figure>
-        <div class="media-frame" style="background:#000"><img src="static/images/pcb_3d.jpg" alt="3D render of the blue two-layer servo-control PCB with servo headers along one edge" loading="lazy"></div>
+      <figure class="block-body reveal">
+        <div class="media dark-media"><img src="static/images/pcb_3d.jpg" width="1200" height="903" alt="3D render of the blue two-layer servo-control PCB with servo headers along one edge" loading="lazy"></div>
       </figure>
     </div>
   </div>
 </section>
 
-<section id="team">
+<section id="team" class="band" aria-labelledby="team-h">
   <div class="wrap">
-    <h2>Team</h2>
-    <div class="team">
-      <div class="member"><div class="nm"><a href="https://qixuanhuang.com" style="color:inherit">Qixuan Huang</a></div><div class="rl">Simulation, the dual-arm controller and its state machine, the packet format, and the Arduino–MuJoCo bridge.</div></div>
-      <div class="member"><div class="nm">Yiming Xu</div><div class="rl">Perception: camera setup, the YOLOv8 + KNN pipeline, and assembling the cube state.</div></div>
-      <div class="member"><div class="nm">Rong Wang</div><div class="rl">Mechanical design and assembly of the dual-arm frame, the stepper drive, and the camera mount.</div></div>
-      <div class="member"><div class="nm">Zhuoyang Shen</div><div class="rl">Electronics, including the servo-control board.</div></div>
+    <div class="head left reveal">
+      <p class="eyebrow"><i class="sticker w"></i>Team</p>
+      <h2 id="team-h">Built by four ECE 445 students.</h2>
+    </div>
+    <div class="team reveal">
+      <div class="member"><p class="nm"><a href="https://qixuanhuang.com">Qixuan Huang</a></p><p class="rl">Simulation, the dual-arm controller and its state machine, the packet format, and the Arduino–MuJoCo bridge.</p></div>
+      <div class="member"><p class="nm">Yiming Xu</p><p class="rl">Perception: camera setup, the YOLOv8 + KNN pipeline, and assembling the cube state.</p></div>
+      <div class="member"><p class="nm">Rong Wang</p><p class="rl">Mechanical design and assembly of the dual-arm frame, the stepper drive, and the camera mount.</p></div>
+      <div class="member"><p class="nm">Zhuoyang Shen</p><p class="rl">Electronics, including the servo-control board.</p></div>
     </div>
   </div>
 </section>
 
-<section id="cite">
-  <div class="wrap">
-    <h2>BibTeX</h2>
+<section id="cite" aria-labelledby="cite-h">
+  <div class="wrap cite">
+    <h2 id="cite-h">BibTeX</h2>
     <div class="bib">
       <button type="button" id="copy-bib">Copy</button>
 <pre id="bibtex">@misc{huang2026cubesolver,
@@ -328,13 +365,16 @@
   </div>
 </section>
 
+</main>
+
 <footer>
-  <div class="wrap">
+  <div class="wrap foot">
     <p>Thanks to the ECE 445 course staff for their guidance throughout the semester.</p>
+    <p><a href="https://github.com/dualarm-cube/cube-solver">Code on GitHub</a><span aria-hidden="true"> · </span><a href="#top">Back to top</a></p>
   </div>
 </footer>
 
-<div class="tip" id="tip"></div>
+<div class="tip" id="tip" aria-hidden="true"></div>
 <script type="module" src="static/js/replay.js"></script>
 <script src="static/js/charts.js" defer></script>
 <script src="static/js/page.js" defer></script>
